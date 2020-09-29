@@ -2,14 +2,13 @@ package org.example.models;
 
 import static org.pmac.PMaCUtil.*;
 
-import java.util.List;
-
 import org.pmac.PMaCLabel;
+import org.pmac.PMaCProcessTrace;
 
 public class OrderProcessing implements PMaCLabel {
 
 	@Override
-	public List<String> getProcess() {
+	public PMaCProcessTrace getProcess() {
 		return process(
 			task("Receive order"),
 			task("Verify order"),

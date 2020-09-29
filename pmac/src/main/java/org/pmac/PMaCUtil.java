@@ -23,54 +23,54 @@ public class PMaCUtil {
 	private PMaCUtil() {
 	}
 
-	public static List<String> task(String name) {
-		return Arrays.asList(new String[] { name });
+	public static PMaCProcessTrace task(String name) {
+		return new PMaCProcessTrace(Arrays.asList(new PMaCActivity[] { new PMaCActivity(name) }));
 	}
 
 	@SafeVarargs
-	public static List<String> sequence(List<String>... x) {
-		List<String> workflow = new ArrayList<>();
-		Arrays.asList(x).stream().forEach(y -> workflow.addAll(y));
-		return workflow;
+	public static PMaCProcessTrace sequence(PMaCProcessTrace... x) {
+		List<PMaCActivity> workflow = new ArrayList<>();
+		Arrays.asList(x).stream().forEach(y -> workflow.addAll(y.getTrace()));
+		return new PMaCProcessTrace(workflow);
 	}
 
-	public static List<String> parallel(List<String> a, List<String> b) {
-		List<String> workflow = new ArrayList<>();
+	public static PMaCProcessTrace parallel(PMaCProcessTrace a, PMaCProcessTrace b) {
+		List<PMaCActivity> workflow = new ArrayList<>();
 
 		if (Math.random() > 0.5) {
-			workflow.addAll(a);
-			workflow.addAll(b);
+			workflow.addAll(a.getTrace());
+			workflow.addAll(b.getTrace());
 		} else {
-			workflow.addAll(b);
-			workflow.addAll(a);
+			workflow.addAll(b.getTrace());
+			workflow.addAll(a.getTrace());
 		}
 
-		return workflow;
+		return new PMaCProcessTrace(workflow);
 	}
 
-	public static List<String> exclusive(List<String> a, List<String> b) {
-		List<String> workflow = new ArrayList<>();
+	public static PMaCProcessTrace exclusive(PMaCProcessTrace a, PMaCProcessTrace b) {
+		List<PMaCActivity> workflow = new ArrayList<>();
 
 		if (Math.random() > 0.5) {
-			workflow.addAll(a);
+			workflow.addAll(a.getTrace());
 		} else {
-			workflow.addAll(b);
+			workflow.addAll(b.getTrace());
 		}
 
-		return workflow;
+		return new PMaCProcessTrace(workflow);
 	}
 
 	@SafeVarargs
-	public static List<String> process(List<String>... x) {
-		List<String> workflow = new ArrayList<>();
+	public static PMaCProcessTrace process(PMaCProcessTrace... x) {
+		List<PMaCActivity> workflow = new ArrayList<>();
 
-		for (List<String> y : x) {
-			for (String z : y) {
+		for (PMaCProcessTrace y : x) {
+			for (PMaCActivity z : y.getTrace()) {
 				workflow.add(z);
 			}
 		}
 
-		return workflow;
+		return new PMaCProcessTrace(workflow);
 	}
 
 	public static void run(String pack) {
@@ -85,7 +85,7 @@ public class PMaCUtil {
 
 				for (int i = 1; i <= TRACES_NUM; i++) {
 					PMaCLabel model = (PMaCLabel) clazz.newInstance();
-					List<String> trace = model.getProcess();
+					List<PMaCActivity> trace = model.getProcess().getTrace();
 					traces.put(trace.toString(), translateToBpmnModel(trace));
 				}
 
@@ -103,12 +103,12 @@ public class PMaCUtil {
 		}
 	}
 
-	private static BpmnModelInstance translateToBpmnModel(List<String> x) {
+	private static BpmnModelInstance translateToBpmnModel(List<PMaCActivity> x) {
 		@SuppressWarnings("rawtypes")
 		AbstractFlowNodeBuilder builder = Bpmn.createProcess().startEvent();
 
-		for (String y : x) {
-			builder = builder.userTask().name(y);
+		for (PMaCActivity y : x) {
+			builder = builder.userTask().name(y.getName());
 		}
 
 		return builder.endEvent().done();
